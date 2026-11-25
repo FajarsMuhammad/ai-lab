@@ -18,12 +18,27 @@ ollama pull llama3.2:3b
 ollama pull nomic-embed-text
 docker run -d --name pgvector -e POSTGRES_PASSWORD=postgres -p 5432:5432 pgvector/pgvector:pg16
 mvn -q compile
-mvn -q exec:java -Dexec.mainClass=lab.Step1Hello   # needs exec-maven-plugin, or run main from the IDE
+mvn -q exec:java -Dexec.mainClass=lab.week1.Step1Hello   # needs exec-maven-plugin, or run main from the IDE
 ```
 
 ## Structure
 
-All classes live in `src/main/java/lab/`.
+All classes live under `src/main/java/lab/`, one package per folder:
+
+```
+lab/
+├── llm/    LlmClient, EmbeddingClient, ToolLoop   (model clients)
+├── rag/    Chunker, DocStore, RagService          (retrieval)
+├── eval/   EvalSet                                (eval data)
+├── week1/  Step1Hello ... Step4Structured
+├── week2/  Step5ToolCalling
+├── week3/  Step6EmbeddingBasics, Step7VectorSearch
+├── week4/  Step8Rag
+├── week5/  Step9RetrievalEval, Step10JudgeEval
+└── week6/  Step11Agent, Step11AgentEval
+```
+
+Run a Step by its full name, for example `lab.week6.Step11Agent`.
 
 | File | Role |
 |---|---|
@@ -37,7 +52,7 @@ All classes live in `src/main/java/lab/`.
 | `Step1Hello` ... `Step4Structured` | Week 1: chat, history, temperature, structured output + validation + retry |
 | `Step5ToolCalling` | Week 2: tool calling loop (`MAX_STEPS = 5`), tools `get_order_status`, `get_shipping_fee` |
 | `Step6EmbeddingBasics`, `Step7VectorSearch` | Week 3: cosine similarity, vector search in pgvector |
-| `Step8Rag` | Week 4: ingest the policy document + full RAG. `DOCUMENT` and `SOURCE` are package-private, used by the evals |
+| `Step8Rag` | Week 4: ingest the policy document + full RAG. `DOCUMENT`, `SOURCE`, and `ingest` are public, used by the evals and the agent |
 | `Step9RetrievalEval` | Week 5: chunk size × threshold grid, metrics hit@1, hit@3, reject, false-reject, false-accept |
 | `Step10JudgeEval` | Week 5: LLM-as-judge for grounded / hallucinated |
 | `Step11Agent` | Week 6: agent with the order tools + `search_policy` (chunks passing `MIN_SIMILARITY`, numbered `[n]`) |
@@ -50,6 +65,7 @@ All classes live in `src/main/java/lab/`.
 - Always treat model output as external input: parse, validate, and retry with the error message.
 - Calculations and data (prices, dates, statuses) come from Java code or tools, never from the model.
 - Comments, console text, prompts, and sample data are in English.
+- Shared classes go in `llm/`, `rag/`, or `eval/`; a new Step goes in the `weekN/` package of its week. Members used from another package must be `public`.
 - Keep changes as small as possible. Do not refactor old Step files when adding a new Step; shared classes (`LlmClient`, `DocStore`, and others) may be extended as long as old Steps still run.
 
 ## Status

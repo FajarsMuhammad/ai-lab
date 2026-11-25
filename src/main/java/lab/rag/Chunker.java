@@ -1,4 +1,4 @@
-package lab;
+package lab.rag;
 
 import java.util.ArrayList;
 import java.util.List;

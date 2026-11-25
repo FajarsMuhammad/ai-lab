@@ -1,7 +1,8 @@
-package lab;
+package lab.week1;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import lab.LlmClient.Message;
+import lab.llm.LlmClient;
+import lab.llm.LlmClient.Message;
 
 import java.util.ArrayList;
 import java.util.List;

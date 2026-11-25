@@ -1,4 +1,4 @@
-package lab;
+package lab.llm;
 
 import com.fasterxml.jackson.databind.JsonNode;
 

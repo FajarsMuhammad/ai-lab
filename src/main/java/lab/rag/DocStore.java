@@ -1,4 +1,4 @@
-package lab;
+package lab.rag;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

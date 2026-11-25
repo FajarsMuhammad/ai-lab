@@ -1,4 +1,6 @@
-package lab;
+package lab.week3;
+
+import lab.llm.EmbeddingClient;
 
 import java.util.List;
 

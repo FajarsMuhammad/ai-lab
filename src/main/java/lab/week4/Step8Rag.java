@@ -1,13 +1,19 @@
-package lab;
+package lab.week4;
+
+import lab.llm.EmbeddingClient;
+import lab.llm.LlmClient;
+import lab.rag.Chunker;
+import lab.rag.DocStore;
+import lab.rag.RagService;
 
 import java.util.List;
 
 /** Week 4: ingest the policy document into pgvector, then full RAG with citations. */
 public class Step8Rag {
 
-    static final String SOURCE = "store-policy.md";
+    public static final String SOURCE = "store-policy.md";
 
-    static final String DOCUMENT = """
+    public static final String DOCUMENT = """
             Return Policy. Customers may request a return no later than 7 calendar days after receiving the item. \
             Returned items must be complete, with their original packaging and labels. \
             Returns are requested from the My Orders menu with an unboxing photo or video attached.
@@ -39,7 +45,7 @@ public class Step8Rag {
             """;
 
     /** Reset the table and store all document chunks. Returns the chunk count. Also used by the evals and the agent. */
-    static int ingest(DocStore store, EmbeddingClient embeddings, int chunkSize) {
+    public static int ingest(DocStore store, EmbeddingClient embeddings, int chunkSize) {
         List<String> chunks = new Chunker(chunkSize).split(DOCUMENT);
         List<float[]> vectors = embeddings.embed(chunks);
         store.reset(vectors.get(0).length);

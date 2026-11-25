@@ -1,4 +1,4 @@
-package lab;
+package lab.llm;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -26,7 +26,7 @@ public class LlmClient {
             System.getenv().getOrDefault("OLLAMA_BASE_URL", "http://localhost:11434/v1");
     public static final String DEFAULT_MODEL = "llama3.2:3b";
 
-    static final ObjectMapper MAPPER = new ObjectMapper();
+    public static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final HttpClient http = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))

@@ -1,4 +1,7 @@
-package lab;
+package lab.week3;
+
+import lab.llm.EmbeddingClient;
+import lab.rag.DocStore;
 
 import java.util.List;
 

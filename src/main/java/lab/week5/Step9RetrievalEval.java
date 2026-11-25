@@ -1,4 +1,10 @@
-package lab;
+package lab.week5;
+
+import lab.eval.EvalSet;
+import lab.llm.EmbeddingClient;
+import lab.rag.DocStore;
+import lab.rag.RagService;
+import lab.week4.Step8Rag;
 
 import java.util.List;
 

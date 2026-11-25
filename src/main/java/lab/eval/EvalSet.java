@@ -1,4 +1,4 @@
-package lab;
+package lab.eval;
 
 import java.util.List;
 import java.util.Set;

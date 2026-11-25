@@ -1,7 +1,13 @@
-package lab;
+package lab.week5;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import lab.LlmClient.Message;
+import lab.eval.EvalSet;
+import lab.llm.EmbeddingClient;
+import lab.llm.LlmClient;
+import lab.llm.LlmClient.Message;
+import lab.rag.DocStore;
+import lab.rag.RagService;
+import lab.week4.Step8Rag;
 
 import java.util.ArrayList;
 import java.util.List;

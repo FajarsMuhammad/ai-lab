@@ -1,7 +1,10 @@
-package lab;
+package lab.week2;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import lab.LlmClient.Message;
+import lab.eval.EvalSet;
+import lab.llm.LlmClient;
+import lab.llm.LlmClient.Message;
+import lab.llm.ToolLoop;
 
 import java.util.List;
 import java.util.Locale;
@@ -29,7 +32,7 @@ public class Step5ToolCalling {
             "medan", 25_000,
             "makassar", 28_000);
 
-    static final List<Map<String, Object>> ORDER_TOOLS = List.of(
+    public static final List<Map<String, Object>> ORDER_TOOLS = List.of(
             LlmClient.tool(EvalSet.ORDER_STATUS,
                     "Check the status and shipping details of an order by order number.",
                     Map.of("order_id", LlmClient.param("string", "Order number, format A-0000")),
@@ -42,7 +45,7 @@ public class Step5ToolCalling {
                     List.of("city", "weight_kg")));
 
     /** Runs an order tool. Returns null if the name is not an order tool. */
-    static String executeOrderTool(String name, JsonNode args) {
+    public static String executeOrderTool(String name, JsonNode args) {
         return switch (name) {
             case EvalSet.ORDER_STATUS -> getOrderStatus(args.path("order_id").asText(""));
             case EvalSet.SHIPPING_FEE -> getShippingFee(args.path("city").asText(""), args.path("weight_kg"));

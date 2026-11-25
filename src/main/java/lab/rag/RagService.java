@@ -1,6 +1,8 @@
-package lab;
+package lab.rag;
 
-import lab.LlmClient.Message;
+import lab.llm.EmbeddingClient;
+import lab.llm.LlmClient;
+import lab.llm.LlmClient.Message;
 
 import java.util.List;
 
