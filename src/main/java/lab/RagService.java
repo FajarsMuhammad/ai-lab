@@ -5,14 +5,14 @@ import lab.LlmClient.Message;
 import java.util.List;
 
 /**
- * RAG: retrieve top-3, buang chunk di bawah MIN_SIMILARITY, lalu jawab dengan sitasi [n].
- * Jika tidak ada konteks yang lolos, LLM tidak dipanggil sama sekali.
+ * RAG: retrieve top-3, drop chunks below MIN_SIMILARITY, then answer with [n] citations.
+ * If no context passes the threshold, the LLM is not called at all.
  */
 public class RagService {
 
     public static final int TOP_K = 3;
     public static final double MIN_SIMILARITY = 0.5;
-    public static final String NO_ANSWER = "Maaf, informasi itu tidak ada di dokumen kebijakan kami.";
+    public static final String NO_ANSWER = "Sorry, that information is not in our policy document.";
 
     public record Answer(String text, List<DocStore.Hit> context) {
     }
@@ -33,7 +33,7 @@ public class RagService {
         this.minSimilarity = minSimilarity;
     }
 
-    /** Chunk yang lolos threshold, urut dari paling mirip. */
+    /** Chunks that pass the threshold, most similar first. */
     public List<DocStore.Hit> retrieve(String question) {
         return store.search(embeddings.embed(question), TOP_K).stream()
                 .filter(hit -> hit.similarity() >= minSimilarity)
@@ -47,15 +47,15 @@ public class RagService {
         }
         List<Message> messages = List.of(
                 Message.system("""
-                        Kamu asisten layanan pelanggan toko online.
-                        Jawab HANYA berdasarkan konteks bernomor di bawah. Setiap klaim harus diberi sitasi [n].
-                        Jika konteks tidak memuat jawabannya, katakan: "%s"
-                        Jawab singkat dalam bahasa Indonesia.""".formatted(NO_ANSWER)),
-                Message.user("Konteks:\n" + formatContext(context) + "\n\nPertanyaan: " + question));
+                        You are a customer service assistant for an online store.
+                        Answer ONLY from the numbered context below. Every claim must carry a [n] citation.
+                        If the context does not contain the answer, say: "%s"
+                        Answer briefly.""".formatted(NO_ANSWER)),
+                Message.user("Context:\n" + formatContext(context) + "\n\nQuestion: " + question));
         return new Answer(llm.chat(messages, 0.0), context);
     }
 
-    /** Format konteks bernomor [1], [2], ... dipakai juga oleh tool search_policy di Step11Agent. */
+    /** Formats context as [1], [2], ...; also used by the search_policy tool in Step11Agent. */
     public static String formatContext(List<DocStore.Hit> hits) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < hits.size(); i++) {

@@ -13,11 +13,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-/** Client embedding untuk endpoint OpenAI-compatible /embeddings. */
+/** Embedding client for the OpenAI-compatible /embeddings endpoint. */
 public class EmbeddingClient {
 
     public static final String DEFAULT_MODEL = "nomic-embed-text";
-    /** Dimensi nomic-embed-text. bge-m3 = 1024. */
+    /** Dimension of nomic-embed-text. bge-m3 = 1024. */
     public static final int DEFAULT_DIMENSION = 768;
 
     private final HttpClient http = HttpClient.newBuilder()
@@ -37,7 +37,7 @@ public class EmbeddingClient {
         return embed(List.of(text)).get(0);
     }
 
-    /** Batch embedding. Hasil diurutkan menurut field index agar sama dengan urutan input. */
+    /** Batch embedding. Results are ordered by the index field so they match the input order. */
     public List<float[]> embed(List<String> texts) {
         try {
             String body = LlmClient.MAPPER.writeValueAsString(Map.of("model", model, "input", texts));
@@ -61,14 +61,14 @@ public class EmbeddingClient {
                 result[item.path("index").asInt()] = v;
             }
             if (Arrays.stream(result).anyMatch(v -> v == null)) {
-                throw new IllegalStateException("Jumlah embedding tidak sama dengan jumlah input");
+                throw new IllegalStateException("Number of embeddings does not match number of inputs");
             }
             return new ArrayList<>(Arrays.asList(result));
         } catch (IOException e) {
-            throw new IllegalStateException("Gagal memanggil embedding di " + LlmClient.BASE_URL, e);
+            throw new IllegalStateException("Failed to call embeddings at " + LlmClient.BASE_URL, e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new IllegalStateException("Dibatalkan", e);
+            throw new IllegalStateException("Interrupted", e);
         }
     }
 

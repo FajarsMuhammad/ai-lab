@@ -2,43 +2,43 @@ package lab;
 
 import java.util.List;
 
-/** Minggu 4: ingest dokumen kebijakan ke pgvector, lalu RAG lengkap dengan sitasi. */
+/** Week 4: ingest the policy document into pgvector, then full RAG with citations. */
 public class Step8Rag {
 
-    static final String SOURCE = "kebijakan-toko.md";
+    static final String SOURCE = "store-policy.md";
 
     static final String DOCUMENT = """
-            Kebijakan Retur. Pelanggan dapat mengajukan retur paling lambat 7 hari kalender setelah barang diterima. \
-            Barang yang diretur harus dalam kondisi lengkap beserta kemasan dan label aslinya. \
-            Retur diajukan melalui menu Pesanan Saya dengan melampirkan foto atau video unboxing.
+            Return Policy. Customers may request a return no later than 7 calendar days after receiving the item. \
+            Returned items must be complete, with their original packaging and labels. \
+            Returns are requested from the My Orders menu with an unboxing photo or video attached.
 
-            Barang Cacat atau Salah Kirim. Jika barang diterima dalam keadaan cacat, rusak, atau tidak sesuai pesanan, \
-            ongkos kirim retur ditanggung sepenuhnya oleh toko. \
-            Pelanggan dapat memilih penggantian barang yang sama atau pengembalian dana penuh.
+            Defective or Wrong Items. If an item arrives defective, damaged, or not as ordered, \
+            the return shipping cost is fully covered by the store. \
+            The customer can choose a replacement of the same item or a full refund.
 
-            Retur Karena Berubah Pikiran. Retur karena pelanggan berubah pikiran tetap diterima dalam 7 hari, \
-            tetapi ongkos kirim retur ditanggung oleh pelanggan. \
-            Produk pakaian dalam, kosmetik yang sudah dibuka, dan voucher digital tidak dapat diretur karena berubah pikiran.
+            Change of Mind Returns. Returns because the customer changed their mind are accepted within 7 days, \
+            but the return shipping cost is paid by the customer. \
+            Underwear, opened cosmetics, and digital vouchers cannot be returned for a change of mind.
 
-            Pengembalian Dana. Dana dikembalikan paling lambat 5 hari kerja setelah barang retur diterima dan diperiksa gudang. \
-            Pengembalian dana dikirim ke metode pembayaran awal atau ke saldo akun sesuai pilihan pelanggan.
+            Refunds. Refunds are issued no later than 5 business days after the returned item is received and inspected by the warehouse. \
+            Refunds go to the original payment method or to the account balance, as the customer chooses.
 
-            Pengiriman. Pesanan yang dibayar sebelum pukul 14.00 WIB dikirim di hari yang sama, kecuali hari Minggu dan hari libur nasional. \
-            Ongkos kirim dihitung dari kota tujuan dan berat paket, dengan pembulatan ke atas per kilogram. \
-            Gratis ongkir berlaku untuk pesanan di atas Rp500.000 ke Pulau Jawa.
+            Shipping. Orders paid before 14:00 WIB ship the same day, except on Sundays and national holidays. \
+            Shipping cost is based on the destination city and package weight, rounded up per kilogram. \
+            Free shipping applies to orders above Rp500,000 to Java island.
 
-            Garansi. Produk elektronik bergaransi resmi 12 bulan sejak tanggal pembelian. \
-            Klaim garansi tidak berlaku untuk kerusakan akibat air, jatuh, atau perbaikan oleh pihak ketiga. \
-            Klaim garansi diajukan dengan menyertakan nomor pesanan dan nota pembelian.
+            Warranty. Electronic products carry an official 12-month warranty from the purchase date. \
+            Warranty claims do not cover damage caused by water, drops, or third-party repairs. \
+            Warranty claims require the order number and the purchase receipt.
 
-            Pembayaran. Toko menerima transfer bank, kartu kredit, dompet digital, dan bayar di tempat (COD). \
-            COD hanya tersedia untuk pesanan dengan nilai maksimal Rp2.000.000. \
-            Pesanan yang belum dibayar dalam 24 jam akan dibatalkan otomatis.
+            Payment. The store accepts bank transfer, credit card, e-wallet, and cash on delivery (COD). \
+            COD is only available for orders worth at most Rp2,000,000. \
+            Orders not paid within 24 hours are cancelled automatically.
 
-            Layanan Pelanggan. Tim layanan pelanggan aktif Senin sampai Sabtu pukul 08.00 sampai 20.00 WIB melalui chat dan email.
+            Customer Service. The customer service team is available Monday to Saturday from 08:00 to 20:00 WIB via chat and email.
             """;
 
-    /** Reset tabel lalu simpan semua chunk dokumen. Mengembalikan jumlah chunk. Dipakai juga oleh eval dan agent. */
+    /** Reset the table and store all document chunks. Returns the chunk count. Also used by the evals and the agent. */
     static int ingest(DocStore store, EmbeddingClient embeddings, int chunkSize) {
         List<String> chunks = new Chunker(chunkSize).split(DOCUMENT);
         List<float[]> vectors = embeddings.embed(chunks);
@@ -54,21 +54,21 @@ public class Step8Rag {
         EmbeddingClient embeddings = new EmbeddingClient();
         try (DocStore store = new DocStore()) {
             int count = ingest(store, embeddings, 400);
-            System.out.println("Ingest selesai: " + count + " chunk\n");
+            System.out.println("Ingest done: " + count + " chunks\n");
 
             RagService rag = new RagService(llm, embeddings, store);
             List<String> questions = List.of(
-                    "Berapa lama batas waktu retur?",
-                    "Kalau barang cacat, siapa yang bayar ongkir retur?",
-                    "Apakah bisa bayar COD untuk pesanan 3 juta?",
-                    "Apakah toko menjual tiket pesawat?");
+                    "How long is the return window?",
+                    "If the item is defective, who pays the return shipping?",
+                    "Can I pay COD for an order worth 3 million?",
+                    "Does the store sell plane tickets?");
             for (String q : questions) {
                 RagService.Answer answer = rag.answer(q);
-                System.out.println("Pertanyaan: " + q);
+                System.out.println("Question: " + q);
                 for (DocStore.Hit hit : answer.context()) {
-                    System.out.printf("  konteks (%.3f): %s%n", hit.similarity(), hit.content());
+                    System.out.printf("  context (%.3f): %s%n", hit.similarity(), hit.content());
                 }
-                System.out.println("Jawaban: " + answer.text() + "\n");
+                System.out.println("Answer: " + answer.text() + "\n");
             }
         }
     }

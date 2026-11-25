@@ -3,8 +3,8 @@ package lab;
 import java.util.List;
 
 /**
- * Minggu 5: evaluasi retrieval. Grid chunk size x threshold.
- * hit@1 / hit@3 untuk kasus yang bisa dijawab, reject untuk kasus yang tidak bisa dijawab.
+ * Week 5: retrieval eval. Grid of chunk size x threshold.
+ * hit@1 / hit@3 for answerable cases, reject for unanswerable cases.
  */
 public class Step9RetrievalEval {
 
@@ -16,12 +16,12 @@ public class Step9RetrievalEval {
         long answerable = EvalSet.CASES.stream().filter(EvalSet.Case::answerable).count();
         long unanswerable = EvalSet.CASES.size() - answerable;
 
-        System.out.printf("%-6s %-6s %-6s %-6s %-7s %-11s %-12s%n",
-                "chunk", "thr", "hit@1", "hit@3", "reject", "salah-tolak", "salah-terima");
+        System.out.printf("%-6s %-6s %-6s %-6s %-7s %-12s %-12s%n",
+                "chunk", "thr", "hit@1", "hit@3", "reject", "false-reject", "false-accept");
         try (DocStore store = new DocStore()) {
             for (int chunkSize : CHUNK_SIZES) {
                 Step8Rag.ingest(store, embeddings, chunkSize);
-                // Ambil hasil sekali per chunk size, lalu terapkan tiap threshold
+                // Retrieve once per chunk size, then apply each threshold
                 List<List<DocStore.Hit>> results = EvalSet.CASES.stream()
                         .map(c -> store.search(embeddings.embed(c.question()), RagService.TOP_K))
                         .toList();
@@ -50,7 +50,7 @@ public class Step9RetrievalEval {
                             falseAccept++;
                         }
                     }
-                    System.out.printf("%-6d %-6.2f %-6s %-6s %-7s %-11d %-12d%n", chunkSize, threshold,
+                    System.out.printf("%-6d %-6.2f %-6s %-6s %-7s %-12d %-12d%n", chunkSize, threshold,
                             hit1 + "/" + answerable, hit3 + "/" + answerable, reject + "/" + unanswerable,
                             falseReject, falseAccept);
                 }

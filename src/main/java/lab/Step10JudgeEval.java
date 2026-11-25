@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Minggu 5: LLM-as-judge. Model kedua menilai apakah jawaban RAG grounded pada konteks
- * atau mengandung halusinasi. Output judge juga divalidasi dan di-retry.
+ * Week 5: LLM-as-judge. A second model call decides whether a RAG answer is grounded in the context
+ * or contains hallucinations. The judge output is validated and retried too.
  */
 public class Step10JudgeEval {
 
@@ -30,46 +30,46 @@ public class Step10JudgeEval {
                 RagService.Answer answer = rag.answer(c.question());
                 if (answer.context().isEmpty()) {
                     skipped++;
-                    System.out.println("[DITOLAK] " + c.question());
+                    System.out.println("[REJECTED] " + c.question());
                     continue;
                 }
                 Verdict verdict = judge(llm, RagService.formatContext(answer.context()), c.question(), answer.text());
                 if (verdict == null) {
                     judgeFailed++;
-                    System.out.println("[JUDGE GAGAL] " + c.question());
+                    System.out.println("[JUDGE FAILED] " + c.question());
                 } else if (verdict.grounded()) {
                     grounded++;
                     System.out.println("[GROUNDED] " + c.question());
                 } else {
                     hallucinated++;
-                    System.out.println("[HALUSINASI] " + c.question() + "\n   jawaban: " + answer.text()
-                            + "\n   alasan: " + verdict.reason());
+                    System.out.println("[HALLUCINATION] " + c.question() + "\n   answer: " + answer.text()
+                            + "\n   reason: " + verdict.reason());
                 }
             }
         }
-        System.out.printf("%nGrounded: %d, halusinasi: %d, ditolak tanpa LLM: %d, judge gagal: %d%n",
+        System.out.printf("%nGrounded: %d, hallucinated: %d, rejected without LLM: %d, judge failed: %d%n",
                 grounded, hallucinated, skipped, judgeFailed);
     }
 
     static Verdict judge(LlmClient llm, String context, String question, String answer) {
         List<Message> messages = new ArrayList<>(List.of(
                 Message.system("""
-                        Kamu penilai. Tentukan apakah JAWABAN sepenuhnya didukung oleh KONTEKS.
-                        Klaim apa pun yang tidak ada di konteks = tidak grounded.
-                        Balas hanya JSON: {"grounded": true|false, "reason": "alasan singkat"}"""),
-                Message.user("KONTEKS:\n" + context + "\n\nPERTANYAAN: " + question + "\n\nJAWABAN: " + answer)));
+                        You are a grader. Decide whether the ANSWER is fully supported by the CONTEXT.
+                        Any claim not found in the context = not grounded.
+                        Reply with JSON only: {"grounded": true|false, "reason": "short reason"}"""),
+                Message.user("CONTEXT:\n" + context + "\n\nQUESTION: " + question + "\n\nANSWER: " + answer)));
 
         for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
             String raw = llm.chatJson(messages, 0.0);
             try {
                 JsonNode node = LlmClient.MAPPER.readTree(raw);
                 if (!node.path("grounded").isBoolean()) {
-                    throw new IllegalArgumentException("field grounded harus boolean");
+                    throw new IllegalArgumentException("field grounded must be a boolean");
                 }
                 return new Verdict(node.path("grounded").asBoolean(), node.path("reason").asText(""));
             } catch (Exception e) {
                 messages.add(Message.assistant(raw));
-                messages.add(Message.user("Output tidak valid: " + e.getMessage() + ". Balas hanya JSON sesuai format."));
+                messages.add(Message.user("Invalid output: " + e.getMessage() + ". Reply with JSON only, in the given format."));
             }
         }
         return null;

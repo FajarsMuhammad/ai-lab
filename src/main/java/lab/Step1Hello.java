@@ -4,14 +4,14 @@ import lab.LlmClient.Message;
 
 import java.util.List;
 
-/** Minggu 1: panggilan chat pertama. */
+/** Week 1: the first chat call. */
 public class Step1Hello {
 
     public static void main(String[] args) {
         LlmClient llm = new LlmClient();
         String reply = llm.chat(List.of(
-                Message.system("Kamu asisten yang menjawab singkat dalam bahasa Indonesia."),
-                Message.user("Jelaskan apa itu LLM dalam dua kalimat.")));
+                Message.system("You are an assistant that answers briefly."),
+                Message.user("Explain what an LLM is in two sentences.")));
         System.out.println("Model: " + reply);
     }
 }

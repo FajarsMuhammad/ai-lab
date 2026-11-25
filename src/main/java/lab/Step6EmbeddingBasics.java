@@ -2,18 +2,18 @@ package lab;
 
 import java.util.List;
 
-/** Minggu 3: embedding dan cosine similarity. Kalimat bermakna mirip punya vektor yang berdekatan. */
+/** Week 3: embeddings and cosine similarity. Sentences with similar meaning have nearby vectors. */
 public class Step6EmbeddingBasics {
 
     public static void main(String[] args) {
         EmbeddingClient client = new EmbeddingClient();
         List<String> sentences = List.of(
-                "Bagaimana cara mengembalikan barang?",
-                "Saya ingin retur produk yang sudah dibeli.",
-                "Berapa ongkos kirim ke Surabaya?",
-                "Kucing saya suka tidur di sofa.");
+                "How do I send an item back?",
+                "I want to return a product I bought.",
+                "What is the shipping cost to Surabaya?",
+                "My cat likes to sleep on the sofa.");
         List<float[]> vectors = client.embed(sentences);
-        System.out.println("Dimensi vektor: " + vectors.get(0).length + "\n");
+        System.out.println("Vector dimension: " + vectors.get(0).length + "\n");
 
         for (int i = 1; i < sentences.size(); i++) {
             double sim = EmbeddingClient.cosine(vectors.get(0), vectors.get(i));

@@ -3,7 +3,7 @@ package lab;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Memecah teks per kalimat sampai maxChars, dengan overlap 1 kalimat antar chunk. */
+/** Splits text by sentence up to maxChars, with a 1-sentence overlap between chunks. */
 public class Chunker {
 
     private final int maxChars;
@@ -25,7 +25,7 @@ public class Chunker {
             }
             if (!current.isEmpty() && length + sentence.length() + 1 > maxChars) {
                 chunks.add(String.join(" ", current));
-                // overlap: kalimat terakhir ikut ke chunk berikutnya
+                // overlap: the last sentence carries over to the next chunk
                 String last = current.get(current.size() - 1);
                 current = new ArrayList<>(List.of(last));
                 length = last.length();

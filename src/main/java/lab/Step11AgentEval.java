@@ -4,8 +4,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Minggu 6: evaluasi agent. Apakah tool yang dipilih model benar untuk tiap pertanyaan?
- * Dibandingkan sebagai himpunan: urutan dan pemanggilan berulang tidak dihitung salah.
+ * Week 6: agent eval. Did the model pick the right tools for each question?
+ * Compared as sets: order and repeated calls are not counted as wrong.
  */
 public class Step11AgentEval {
 
@@ -36,12 +36,12 @@ public class Step11AgentEval {
                 if (ToolLoop.GAVE_UP.equals(result.answer())) {
                     gaveUp++;
                 }
-                System.out.printf("[%s] %s%n      harapan: %s, aktual: %s%n",
-                        ok ? "BENAR" : "SALAH", c.question(), c.expectedTools(), result.toolsCalled());
+                System.out.printf("[%s] %s%n      expected: %s, actual: %s%n",
+                        ok ? "PASS" : "FAIL", c.question(), c.expectedTools(), result.toolsCalled());
             }
         }
         int total = EvalSet.AGENT_CASES.size();
-        System.out.printf("%nTool benar: %d/%d, tool terlewat: %d, tool tidak perlu: %d, kena MAX_STEPS: %d%n",
+        System.out.printf("%nCorrect tools: %d/%d, missed tools: %d, unneeded tools: %d, hit MAX_STEPS: %d%n",
                 correct, total, missing, extra, gaveUp);
     }
 }

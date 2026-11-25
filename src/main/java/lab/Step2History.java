@@ -6,29 +6,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Minggu 1: LLM tidak punya memori. Riwayat percakapan harus dikirim ulang setiap kali.
+ * Week 1: an LLM has no memory. The conversation history must be sent again on every call.
  */
 public class Step2History {
 
     public static void main(String[] args) {
         LlmClient llm = new LlmClient();
         List<Message> history = new ArrayList<>();
-        history.add(Message.system("Kamu asisten yang menjawab singkat dalam bahasa Indonesia."));
+        history.add(Message.system("You are an assistant that answers briefly."));
 
         List<String> turns = List.of(
-                "Nama saya Budi dan saya suka kopi.",
-                "Apa minuman favorit saya?",
-                "Siapa nama saya?");
+                "My name is Budi and I like coffee.",
+                "What is my favorite drink?",
+                "What is my name?");
         for (String turn : turns) {
             history.add(Message.user(turn));
             String reply = llm.chat(history, 0.0);
             history.add(Message.assistant(reply));
-            System.out.println("Pengguna: " + turn);
-            System.out.println("Model   : " + reply + "\n");
+            System.out.println("User : " + turn);
+            System.out.println("Model: " + reply + "\n");
         }
 
-        // Tanpa riwayat, model tidak tahu nama pengguna
-        String noHistory = llm.chat(List.of(Message.user("Siapa nama saya?")), 0.0);
-        System.out.println("Tanpa riwayat: " + noHistory);
+        // Without history, the model does not know the user's name
+        String noHistory = llm.chat(List.of(Message.user("What is my name?")), 0.0);
+        System.out.println("Without history: " + noHistory);
     }
 }

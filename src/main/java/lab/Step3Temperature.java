@@ -4,12 +4,12 @@ import lab.LlmClient.Message;
 
 import java.util.List;
 
-/** Minggu 1: pengaruh temperature terhadap variasi jawaban. */
+/** Week 1: how temperature affects answer variety. */
 public class Step3Temperature {
 
     public static void main(String[] args) {
         LlmClient llm = new LlmClient();
-        List<Message> prompt = List.of(Message.user("Berikan satu nama untuk toko kopi kecil. Jawab nama saja."));
+        List<Message> prompt = List.of(Message.user("Suggest one name for a small coffee shop. Reply with the name only."));
 
         for (double temperature : new double[] {0.0, 1.0}) {
             System.out.println("temperature = " + temperature);

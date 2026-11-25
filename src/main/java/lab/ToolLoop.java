@@ -9,22 +9,22 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Loop tool calling: model meminta tool, kode Java menjalankannya, hasilnya dikirim balik,
- * sampai model memberi jawaban akhir atau batas MAX_STEPS tercapai.
- * Dipakai Step5ToolCalling dan Step11Agent.
+ * Tool calling loop: the model requests a tool, Java code runs it, the result is sent back,
+ * until the model gives a final answer or MAX_STEPS is reached.
+ * Used by Step5ToolCalling and Step11Agent.
  */
 public class ToolLoop {
 
     public static final int MAX_STEPS = 5;
-    public static final String GAVE_UP = "Maaf, saya belum bisa menyelesaikan permintaan ini.";
+    public static final String GAVE_UP = "Sorry, I could not complete this request.";
 
-    /** Menjalankan satu tool. Argumen sudah di-parse; nilai di dalamnya tetap harus divalidasi. */
+    /** Runs one tool. Arguments are already parsed; their values must still be validated. */
     @FunctionalInterface
     public interface ToolExecutor {
         String execute(String name, JsonNode arguments);
     }
 
-    /** toolsCalled = nama tool sesuai urutan pemanggilan, dipakai evaluasi agent. */
+    /** toolsCalled = tool names in call order, used by the agent eval. */
     public record Result(String answer, List<String> toolsCalled, int steps) {
     }
 
@@ -56,25 +56,25 @@ public class ToolLoop {
                 toolsCalled.add(name);
                 String output = executeSafely(executor, name, rawArgs);
                 if (verbose) {
-                    System.out.println("  [langkah " + step + "] " + name + "(" + rawArgs + ")");
+                    System.out.println("  [step " + step + "] " + name + "(" + rawArgs + ")");
                     System.out.println("      -> " + output.replace("\n", "\n         "));
                 }
                 messages.add(Message.tool(call.id(), output));
             }
         }
         if (verbose) {
-            System.out.println("  Batas " + MAX_STEPS + " langkah tercapai, berhenti.");
+            System.out.println("  Reached the limit of " + MAX_STEPS + " steps, stopping.");
         }
         return new Result(GAVE_UP, toolsCalled, MAX_STEPS);
     }
 
-    /** Argumen dari model adalah input eksternal: JSON rusak atau error dikembalikan ke model sebagai pesan. */
+    /** Model arguments are external input: broken JSON or errors are returned to the model as a message. */
     private static String executeSafely(ToolExecutor executor, String name, String rawArgs) {
         JsonNode args;
         try {
             args = LlmClient.MAPPER.readTree(rawArgs == null || rawArgs.isBlank() ? "{}" : rawArgs);
         } catch (Exception e) {
-            return "ERROR: argumen bukan JSON valid";
+            return "ERROR: arguments are not valid JSON";
         }
         try {
             return executor.execute(name, args);

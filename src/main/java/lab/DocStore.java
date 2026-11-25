@@ -9,7 +9,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Penyimpanan chunk di tabel `chunks` (pgvector). Jarak cosine memakai operator <=>. */
+/** Stores chunks in the `chunks` table (pgvector). Cosine distance uses the <=> operator. */
 public class DocStore implements AutoCloseable {
 
     public static final String URL =
@@ -26,11 +26,11 @@ public class DocStore implements AutoCloseable {
         try {
             this.connection = DriverManager.getConnection(URL, USER, PASSWORD);
         } catch (SQLException e) {
-            throw new IllegalStateException("Gagal konek ke Postgres di " + URL, e);
+            throw new IllegalStateException("Failed to connect to Postgres at " + URL, e);
         }
     }
 
-    /** Hapus dan buat ulang tabel chunks. */
+    /** Drop and recreate the chunks table. */
     public void reset(int dimension) {
         try (Statement st = connection.createStatement()) {
             st.execute("CREATE EXTENSION IF NOT EXISTS vector");
@@ -38,7 +38,7 @@ public class DocStore implements AutoCloseable {
             st.execute("CREATE TABLE chunks (id SERIAL PRIMARY KEY, source TEXT NOT NULL, "
                     + "content TEXT NOT NULL, embedding vector(" + dimension + ") NOT NULL)");
         } catch (SQLException e) {
-            throw new IllegalStateException("Gagal reset tabel chunks", e);
+            throw new IllegalStateException("Failed to reset chunks table", e);
         }
     }
 
@@ -50,11 +50,11 @@ public class DocStore implements AutoCloseable {
             ps.setString(3, toVectorLiteral(embedding));
             ps.executeUpdate();
         } catch (SQLException e) {
-            throw new IllegalStateException("Gagal menyimpan chunk", e);
+            throw new IllegalStateException("Failed to store chunk", e);
         }
     }
 
-    /** Top-k chunk terdekat. similarity = 1 - jarak cosine. */
+    /** Top-k nearest chunks. similarity = 1 - cosine distance. */
     public List<Hit> search(float[] query, int k) {
         String sql = "SELECT source, content, 1 - (embedding <=> ?::vector) AS similarity "
                 + "FROM chunks ORDER BY embedding <=> ?::vector LIMIT ?";
@@ -71,7 +71,7 @@ public class DocStore implements AutoCloseable {
             }
             return hits;
         } catch (SQLException e) {
-            throw new IllegalStateException("Gagal mencari chunk", e);
+            throw new IllegalStateException("Failed to search chunks", e);
         }
     }
 
@@ -91,7 +91,7 @@ public class DocStore implements AutoCloseable {
         try {
             connection.close();
         } catch (SQLException e) {
-            // diabaikan saat menutup
+            // ignored on close
         }
     }
 }

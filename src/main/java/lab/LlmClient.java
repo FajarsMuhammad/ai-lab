@@ -17,8 +17,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Client chat untuk endpoint OpenAI-compatible (Ollama).
- * Hanya memakai java.net.http.HttpClient dan Jackson, tanpa framework.
+ * Chat client for an OpenAI-compatible endpoint (Ollama).
+ * Uses only java.net.http.HttpClient and Jackson, no framework.
  */
 public class LlmClient {
 
@@ -41,7 +41,7 @@ public class LlmClient {
         this.model = model;
     }
 
-    /** Satu pesan percakapan. Field null tidak dikirim. */
+    /** One conversation message. Null fields are not sent. */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Message(
@@ -76,7 +76,7 @@ public class LlmClient {
     public record ToolCall(String id, String type, FunctionCall function) {
     }
 
-    /** arguments berupa string JSON, sesuai format OpenAI. */
+    /** arguments is a JSON string, per the OpenAI format. */
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record FunctionCall(String name, String arguments) {
     }
@@ -90,14 +90,14 @@ public class LlmClient {
         return send(body).content();
     }
 
-    /** JSON mode: model diminta mengembalikan objek JSON. Tetap harus divalidasi oleh pemanggil. */
+    /** JSON mode: the model is asked to return a JSON object. The caller must still validate it. */
     public String chatJson(List<Message> messages, double temperature) {
         Map<String, Object> body = baseBody(messages, temperature);
         body.put("response_format", Map.of("type", "json_object"));
         return send(body).content();
     }
 
-    /** Tool calling: mengembalikan pesan assistant, bisa berisi tool_calls atau jawaban akhir. */
+    /** Tool calling: returns the assistant message, which holds either tool_calls or a final answer. */
     public Message chatWithTools(List<Message> messages, List<Map<String, Object>> tools) {
         Map<String, Object> body = baseBody(messages, 0.0);
         body.put("tools", tools);
@@ -126,18 +126,18 @@ public class LlmClient {
             }
             JsonNode message = MAPPER.readTree(response.body()).path("choices").path(0).path("message");
             if (message.isMissingNode()) {
-                throw new IllegalStateException("Respons LLM tanpa choices[0].message: " + response.body());
+                throw new IllegalStateException("LLM response has no choices[0].message: " + response.body());
             }
             return MAPPER.treeToValue(message, Message.class);
         } catch (IOException e) {
-            throw new IllegalStateException("Gagal memanggil LLM di " + BASE_URL, e);
+            throw new IllegalStateException("Failed to call LLM at " + BASE_URL, e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new IllegalStateException("Dibatalkan", e);
+            throw new IllegalStateException("Interrupted", e);
         }
     }
 
-    /** Helper untuk membuat definisi tool (JSON schema) dengan ringkas. */
+    /** Helper to build a tool definition (JSON schema) concisely. */
     public static Map<String, Object> tool(String name, String description,
                                            Map<String, Object> properties, List<String> required) {
         return Map.of(

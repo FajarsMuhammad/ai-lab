@@ -49,7 +49,7 @@ Semua class ada di `src/main/java/lab/`.
 - Jangan tambahkan framework (Spring AI, LangChain4j) kecuali diminta. Tujuannya memahami apa yang diabstraksikan framework.
 - Output model selalu diperlakukan sebagai input eksternal: parse, validasi, dan retry dengan pesan error.
 - Hitungan dan data (harga, tanggal, status) datang dari kode Java atau tool, bukan dari model.
-- Komentar dan teks console dalam bahasa Indonesia, identifier dalam bahasa Inggris.
+- Komentar, teks console, prompt, dan data contoh dalam bahasa Inggris.
 - Perubahan sekecil mungkin. Jangan refactor file Step lama saat menambah Step baru; class bersama (`LlmClient`, `DocStore`, dan lainnya) boleh diperluas asalkan Step lama tetap jalan.
 
 ## Status
