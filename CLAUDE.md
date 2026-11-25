@@ -1,15 +1,15 @@
-# ai-lab: belajar AI Engineering dengan Java
+# ai-lab: learning AI Engineering with Java
 
-Proyek belajar AI Engineer, langkah demi langkah. Semua berjalan **lokal di laptop** (tanpa GPU, tanpa API berbayar): model lewat Ollama, vector DB lewat pgvector di Docker.
+A step-by-step AI Engineer learning project. Everything runs **locally on a laptop** (no GPU, no paid APIs): models via Ollama, vector DB via pgvector in Docker.
 
 ## Stack
 
-- Java 27+, Maven, tanpa framework (hanya `java.net.http.HttpClient` dan JDBC)
-- Jackson (`jackson-databind`) untuk JSON
+- Java 27+, Maven, no framework (only `java.net.http.HttpClient` and JDBC)
+- Jackson (`jackson-databind`) for JSON
 - PostgreSQL + pgvector (`org.postgresql:postgresql`)
-- Ollama, dengan endpoint OpenAI-compatible di `http://localhost:11434/v1`
+- Ollama, with the OpenAI-compatible endpoint at `http://localhost:11434/v1`
   - chat: `llama3.2:3b`
-  - embedding: `nomic-embed-text` (alternatif multibahasa: `bge-m3`)
+  - embedding: `nomic-embed-text` (multilingual alternative: `bge-m3`)
 
 ## Setup
 
@@ -18,62 +18,62 @@ ollama pull llama3.2:3b
 ollama pull nomic-embed-text
 docker run -d --name pgvector -e POSTGRES_PASSWORD=postgres -p 5432:5432 pgvector/pgvector:pg16
 mvn -q compile
-mvn -q exec:java -Dexec.mainClass=lab.Step1Hello   # butuh exec-maven-plugin, atau jalankan main dari IDE
+mvn -q exec:java -Dexec.mainClass=lab.Step1Hello   # needs exec-maven-plugin, or run main from the IDE
 ```
 
-## Struktur
+## Structure
 
-Semua class ada di `src/main/java/lab/`.
+All classes live in `src/main/java/lab/`.
 
-| File | Peran |
+| File | Role |
 |---|---|
-| `LlmClient` | Client chat: `chat`, `chatJson` (JSON mode), `chatWithTools` (tool calling). Record `Message`, `ToolCall`, `FunctionCall` |
-| `EmbeddingClient` | `embed(String)` dan `embed(List<String>)` (batch, urutan dijaga) |
-| `ToolLoop` | Loop tool calling bersama (`MAX_STEPS = 5`), cetak tiap pemanggilan tool, kembalikan `Result(answer, toolsCalled, steps)` |
-| `Chunker` | Memecah teks per kalimat sampai `maxChars`, overlap 1 kalimat |
-| `DocStore` | Tabel `chunks` di pgvector: `reset`, `add`, `search` (operator `<=>`, jarak cosine) |
-| `RagService` | Retrieve top-3, filter `MIN_SIMILARITY`, prompt dengan sitasi `[n]`. Tidak memanggil LLM jika tidak ada konteks |
-| `EvalSet` | 15 kasus eval; `expected` = potongan teks wajib di chunk benar, `null` = tidak bisa dijawab. `AGENT_CASES`: 8 kasus agent dengan tool yang diharapkan |
-| `Step1Hello` ... `Step4Structured` | Minggu 1: chat, riwayat, temperature, structured output + validasi + retry |
-| `Step5ToolCalling` | Minggu 2: loop tool calling (`MAX_STEPS = 5`), tool `get_order_status`, `get_shipping_fee` |
-| `Step6EmbeddingBasics`, `Step7VectorSearch` | Minggu 3: cosine similarity, pencarian vektor di pgvector |
-| `Step8Rag` | Minggu 4: ingest dokumen kebijakan + RAG lengkap. `DOCUMENT` dan `SOURCE` package-private, dipakai eval |
-| `Step9RetrievalEval` | Minggu 5: grid chunk size × threshold, metrik hit@1, hit@3, reject, salah-tolak, salah-terima |
-| `Step10JudgeEval` | Minggu 5: LLM-as-judge untuk grounded / halusinasi |
-| `Step11Agent` | Minggu 6: agent dengan tool pesanan + `search_policy` (chunk lolos `MIN_SIMILARITY`, bernomor `[n]`) |
-| `Step11AgentEval` | Minggu 6: evaluasi pemilihan tool per pertanyaan (benar, terlewat, tidak perlu) |
+| `LlmClient` | Chat client: `chat`, `chatJson` (JSON mode), `chatWithTools` (tool calling). Records `Message`, `ToolCall`, `FunctionCall` |
+| `EmbeddingClient` | `embed(String)` and `embed(List<String>)` (batch, order preserved) |
+| `ToolLoop` | Shared tool calling loop (`MAX_STEPS = 5`), prints every tool call, returns `Result(answer, toolsCalled, steps)` |
+| `Chunker` | Splits text by sentence up to `maxChars`, 1-sentence overlap |
+| `DocStore` | `chunks` table in pgvector: `reset`, `add`, `search` (`<=>` operator, cosine distance) |
+| `RagService` | Retrieve top-3, filter by `MIN_SIMILARITY`, prompt with `[n]` citations. Does not call the LLM when there is no context |
+| `EvalSet` | 15 eval cases; `expected` = text snippet that must be in the correct chunk, `null` = not answerable. `AGENT_CASES`: 8 agent cases with expected tools |
+| `Step1Hello` ... `Step4Structured` | Week 1: chat, history, temperature, structured output + validation + retry |
+| `Step5ToolCalling` | Week 2: tool calling loop (`MAX_STEPS = 5`), tools `get_order_status`, `get_shipping_fee` |
+| `Step6EmbeddingBasics`, `Step7VectorSearch` | Week 3: cosine similarity, vector search in pgvector |
+| `Step8Rag` | Week 4: ingest the policy document + full RAG. `DOCUMENT` and `SOURCE` are package-private, used by the evals |
+| `Step9RetrievalEval` | Week 5: chunk size × threshold grid, metrics hit@1, hit@3, reject, false-reject, false-accept |
+| `Step10JudgeEval` | Week 5: LLM-as-judge for grounded / hallucinated |
+| `Step11Agent` | Week 6: agent with the order tools + `search_policy` (chunks passing `MIN_SIMILARITY`, numbered `[n]`) |
+| `Step11AgentEval` | Week 6: eval of tool choice per question (correct, missed, unneeded) |
 
-## Konvensi kode
+## Code conventions
 
-- Sederhana dan mudah dibaca. Setiap `StepN` adalah program mandiri dengan `main`, yang bisa disalin dan dijalankan langsung.
-- Jangan tambahkan framework (Spring AI, LangChain4j) kecuali diminta. Tujuannya memahami apa yang diabstraksikan framework.
-- Output model selalu diperlakukan sebagai input eksternal: parse, validasi, dan retry dengan pesan error.
-- Hitungan dan data (harga, tanggal, status) datang dari kode Java atau tool, bukan dari model.
-- Komentar, teks console, prompt, dan data contoh dalam bahasa Inggris.
-- Perubahan sekecil mungkin. Jangan refactor file Step lama saat menambah Step baru; class bersama (`LlmClient`, `DocStore`, dan lainnya) boleh diperluas asalkan Step lama tetap jalan.
+- Simple and readable. Every `StepN` is a standalone program with `main` that can be copied and run directly.
+- Do not add frameworks (Spring AI, LangChain4j) unless asked. The goal is to understand what frameworks abstract away.
+- Always treat model output as external input: parse, validate, and retry with the error message.
+- Calculations and data (prices, dates, statuses) come from Java code or tools, never from the model.
+- Comments, console text, prompts, and sample data are in English.
+- Keep changes as small as possible. Do not refactor old Step files when adding a new Step; shared classes (`LlmClient`, `DocStore`, and others) may be extended as long as old Steps still run.
 
 ## Status
 
-- [x] Minggu 1: dasar LLM API
-- [x] Minggu 2: tool calling
-- [x] Minggu 3: embeddings + pgvector
-- [x] Minggu 4: RAG lengkap
-- [x] Minggu 5: evaluasi
-- [x] Minggu 6: agent
-- [ ] Minggu 7: observability, caching, kontrol biaya (berikutnya)
-- [ ] Minggu 8: deploy proyek akhir (Docker) + README
+- [x] Week 1: LLM API basics
+- [x] Week 2: tool calling
+- [x] Week 3: embeddings + pgvector
+- [x] Week 4: full RAG
+- [x] Week 5: evaluation
+- [x] Week 6: agent
+- [ ] Week 7: observability, caching, cost control (next)
+- [ ] Week 8: deploy the final project (Docker) + README
 
-## Minggu 6, agent (selesai)
+## Week 6, agent (done)
 
-Buat `Step11Agent`: satu asisten yang menggabungkan Minggu 2 dan Minggu 4.
+Build `Step11Agent`: one assistant that combines Week 2 and Week 4.
 
-- Tool yang tersedia: `get_order_status`, `get_shipping_fee` (dari `Step5ToolCalling`) dan tool baru `search_policy(query)` yang memanggil `DocStore.search` lalu mengembalikan chunk lolos `RagService.MIN_SIMILARITY`, bernomor `[n]`.
-- Model yang memutuskan kapan mencari kebijakan dan kapan memanggil API pesanan.
-- Pakai ulang loop tool calling dengan batas `MAX_STEPS`; cetak setiap pemanggilan tool ke console.
-- Pertanyaan uji: satu yang hanya butuh kebijakan, satu yang hanya butuh data pesanan, satu yang butuh keduanya (misalnya "Pesanan A-1001 sudah dikirim, kalau barangnya cacat bisa retur dan siapa yang bayar ongkirnya?"), dan satu di luar cakupan.
-- Tambahkan kasus agent ke evaluasi: apakah tool yang dipilih benar untuk tiap pertanyaan.
+- Available tools: `get_order_status`, `get_shipping_fee` (from `Step5ToolCalling`) and a new tool `search_policy(query)` that calls `DocStore.search` and returns the chunks that pass `RagService.MIN_SIMILARITY`, numbered `[n]`.
+- The model decides when to search the policy and when to call the order API.
+- Reuse the tool calling loop with the `MAX_STEPS` limit; print every tool call to the console.
+- Test questions: one that needs only the policy, one that needs only order data, one that needs both (for example "Order A-1001 has shipped. If the item is defective, can I return it and who pays the shipping?"), and one out of scope.
+- Add agent cases to the evaluation: was the right tool chosen for each question.
 
-## Verifikasi
+## Verification
 
-- `mvn -q compile` harus lolos tanpa warning baru.
-- Jalankan Step yang diubah terhadap Ollama dan Postgres lokal. Kalau keduanya tidak tersedia, uji logika dengan server tiruan OpenAI-compatible di port 11434, dan sebutkan dengan jelas bagian mana yang belum diuji dengan model asli.
+- `mvn -q compile` must pass with no new warnings.
+- Run the changed Steps against local Ollama and Postgres. If neither is available, test the logic with a fake OpenAI-compatible server on port 11434, and state clearly which parts were not tested with a real model.
